@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+
 	"github.com/izumiya/working/product-api/data"
 )
 
@@ -33,8 +34,22 @@ type productsResponseWrapper struct {
 	Body []data.Product
 }
 
+// swagger:response productResponse
+type productResponseWrapper struct {
+	// in: body
+	Body data.Product
+}
+
 // swagger:response noContent
-type productsNoContent struct {
+type productsNoContentWrapper struct {
+}
+
+// swagger:response errorValidation
+type productsErrorValidationWrapper struct {
+}
+
+// swagger:response errorResponse
+type productsErrorResponseWrapper struct {
 }
 
 // swagger:parameters deleteProduct
@@ -55,40 +70,10 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
-func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle POST Product")
-
-	prod := r.Context().Value(KeyProduct{}).(*data.Product)
-
-	p.l.Printf("Prod: %#v", prod)
-	data.AddProduct(prod)
-}
-
-func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
+func getProductID(r *http.Request) int {
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(rw, "Unable to convert id", http.StatusBadRequest)
-	}
-
-	p.l.Println("Handle PUT Product", id)
-	prod := r.Context().Value(KeyProduct{}).(*data.Product)
-
-	err = prod.FromJSON(r.Body)
-	if err != nil {
-		http.Error(rw, "unable to unmarshal json", http.StatusBadRequest)
-	}
-
-	err = data.UpdateProduct(id, prod)
-	if err == data.ErrProductNotFound {
-		http.Error(rw, "Product not found", http.StatusNotFound)
-		return
-	}
-
-	if err != nil {
-		http.Error(rw, "Product not found", http.StatusInternalServerError)
-		return
-	}
+	id, _ := strconv.Atoi(vars["id"])
+	return id
 }
 
 type KeyProduct struct{}

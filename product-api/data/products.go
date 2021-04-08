@@ -27,6 +27,11 @@ type Product struct {
 	DeletedOn   string  `json:"-"`
 }
 
+func (p *Product) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
 func (p *Product) FromJSON(r io.Reader) error {
 	e := json.NewDecoder(r)
 	return e.Decode(p)
@@ -62,6 +67,14 @@ func (p *Products) ToJSON(w io.Writer) error {
 // GetProducts returns a list of products
 func GetProducts() Products {
 	return productList
+}
+
+func GetProductByID(id int) (*Product, error) {
+	prod, _, err := findProduct(id)
+	if err != nil {
+		return nil, err
+	}
+	return prod, nil
 }
 
 func AddProduct(p *Product) {

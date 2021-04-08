@@ -7,20 +7,40 @@ import (
 )
 
 // swagger:route GET /products products listProducts
-// Returns a list of products
+// Returns a list of products from the database
 // responses:
 //   200: productsResponse
 
-// GetProducts returns the products from the data store
-func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle GET Products")
+// ListAll handles GET requests and returns all current products
+func (p *Products) ListAll(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("[DEBUG] get all records")
 
-	// fetch the products from the datastore
-	lp := data.GetProducts()
+	prods := data.GetProducts()
 
-	// serialize the list to JSON
-	err := lp.ToJSON(rw)
+	err := prods.ToJSON(rw)
 	if err != nil {
-		http.Error(rw, "unable to marshal json", http.StatusInternalServerError)
+		// we should never be here but log the error just in case
+		p.l.Println("[ERROR] serializing product", err)
+	}
+}
+
+// swagger:route GET /products/{id} products listSingle
+// Return a list of products from the database
+// responses:
+//   200: productResponse
+//   404: errorResponse
+
+// ListSingle handles GET requests
+func (p *Products) ListSingle(rw http.ResponseWriter, r *http.Request) {
+	id := getProductID(r)
+
+	p.l.Println("[DEBUG] get record id", id)
+
+	prod, err := data.GetProductByID(id)
+
+	err = prod.ToJSON(rw)
+	if err != nil {
+		// we should never be here but log the error just in case
+		p.l.Println("[ERROR] serializing product", err)
 	}
 }

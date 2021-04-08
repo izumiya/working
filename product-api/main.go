@@ -11,8 +11,9 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
-	"github.com/izumiya/working/product-api/handlers"
 	"github.com/nicholasjackson/env"
+
+	"github.com/izumiya/working/product-api/handlers"
 )
 
 var bindAddress = env.String("BIND_ADDRESS", false, ":9090", "Bind address for the server")
@@ -29,14 +30,15 @@ func main() {
 	sm := mux.NewRouter()
 
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/", ph.ListAll)
+	getRouter.HandleFunc("/{id:[0-9]+}", ph.ListSingle)
 
 	putRoter := sm.Methods(http.MethodPut).Subrouter()
-	putRoter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
+	putRoter.HandleFunc("/{id:[0-9]+}", ph.Update)
 	putRoter.Use(ph.MiddlewareValidateProduct)
 
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.HandleFunc("/", ph.Create)
 	postRouter.Use(ph.MiddlewareValidateProduct)
 
 	deleteRoter := sm.Methods(http.MethodDelete).Subrouter()

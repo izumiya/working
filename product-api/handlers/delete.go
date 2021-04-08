@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/izumiya/working/product-api/data"
 )
 
@@ -12,18 +10,16 @@ import (
 // Returns a list of products
 // responses:
 //   201: noContent
+//   422: errorValidation
+//   501: errorResponse
 
 // DeleteProduct deletes a product from  the database
 func (p *Products) DeleteProduct(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(rw, "Unable to convert id", http.StatusBadRequest)
-	}
+	id := getProductID(r)
 
-	p.l.Println("Handle DELETE Product", id)
+	p.l.Println("[DEBUG] delete record", id)
 
-	err = data.DeleteProduct(id)
+	err := data.DeleteProduct(id)
 
 	if err == data.ErrProductNotFound {
 		http.Error(rw, "product not found", http.StatusNotFound)
