@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/izumiya/working/product-api/handlers"
 	"github.com/nicholasjackson/env"
 )
@@ -24,8 +25,20 @@ func main() {
 	ph := handlers.NewProducts(l)
 
 	// create a new serve mux and register the handlers
-	sm := http.NewServeMux()
-	sm.Handle("/", ph)
+	sm := mux.NewRouter()
+
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	putRoter := sm.Methods(http.MethodPut).Subrouter()
+	putRoter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
+	putRoter.Use(ph.MiddlewareValidateProduct)
+
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.Use(ph.MiddlewareValidateProduct)
+
+	// sm.Handle("/products", ph)
 
 	// create a new server
 	s := &http.Server{
