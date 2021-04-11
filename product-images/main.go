@@ -42,18 +42,20 @@ func main() {
 
 	// create the handlers
 	fh := handlers.NewFiles(stor, l)
+	mw := handlers.GzipHandler{}
 
 	// create a new serve mux and register the handlers
 	sm := mux.NewRouter()
 
-	// filename regex: {filename:[a-zA-Z]+\\.[a-z]{3}}
+	// filename regex: {filename:[0-9a-zA-Z]+\\.[a-z]{3}}
 	// problem with FileServer it that it is dumb
 	ph := sm.Methods(http.MethodPost).Subrouter()
-	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.UploadREST)
+	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[0-9a-zA-Z]+\\.[a-z]{3}}", fh.UploadREST)
 	ph.HandleFunc("/", fh.UploadMultipart)
 
 	gh := sm.Methods(http.MethodGet).Subrouter()
-	gh.Handle("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", http.StripPrefix("/images/", http.FileServer(http.Dir(*basePath))))
+	gh.Handle("/images/{id:[0-9]+}/{filename:[0-9a-zA-Z]+\\.[a-z]{3}}", http.StripPrefix("/images/", http.FileServer(http.Dir(*basePath))))
+	gh.Use(mw.GzipMiddleware)
 
 	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
 
