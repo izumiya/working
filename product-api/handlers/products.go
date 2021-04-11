@@ -26,40 +26,6 @@ import (
 	"github.com/izumiya/working/product-api/data"
 )
 
-// A list of products returns in the response
-// swagger:response productsResponse
-type productsResponseWrapper struct {
-	// All products in the system
-	// in: body
-	Body []data.Product
-}
-
-// swagger:response productResponse
-type productResponseWrapper struct {
-	// in: body
-	Body data.Product
-}
-
-// swagger:response noContent
-type productsNoContentWrapper struct {
-}
-
-// swagger:response errorValidation
-type productsErrorValidationWrapper struct {
-}
-
-// swagger:response errorResponse
-type productsErrorResponseWrapper struct {
-}
-
-// swagger:parameters deleteProduct
-type productIDParameterWrapper struct {
-	// The id of the product to delete from the database
-	// in: path
-	// required: true
-	ID int `json:"id"`
-}
-
 // Products is a http.Handler
 type Products struct {
 	l *log.Logger

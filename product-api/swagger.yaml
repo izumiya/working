@@ -57,7 +57,7 @@ paths:
       description: Returns a list of products
       operationId: deleteProduct
       parameters:
-      - description: The id of the product to delete from the database
+      - description: The id of the product for which the operation relates
         format: int64
         in: path
         name: id
@@ -75,7 +75,15 @@ paths:
       - products
     get:
       description: Return a list of products from the database
-      operationId: listSingle
+      operationId: listSingleProduct
+      parameters:
+      - description: The id of the product for which the operation relates
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
       responses:
         "200":
           $ref: '#/responses/productResponse'
@@ -86,6 +94,14 @@ paths:
     put:
       description: Update a product
       operationId: updateProduct
+      parameters:
+      - description: The id of the product for which the operation relates
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+        x-go-name: ID
       responses:
         "201":
           $ref: '#/responses/noContent'
@@ -103,7 +119,7 @@ responses:
   errorValidation:
     description: ""
   noContent:
-    description: ""
+    description: No content is returned by this API endpoint
   productResponse:
     description: ""
     schema:
