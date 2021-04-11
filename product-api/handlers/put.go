@@ -17,7 +17,7 @@ import (
 func (p *Products) Update(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
-	p.l.Println("[DEBUG] update record", id)
+	p.l.Info("update record", "id", id)
 
 	prod := r.Context().Value(KeyProduct{}).(*data.Product)
 

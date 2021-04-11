@@ -17,7 +17,7 @@ import (
 func (p *Products) DeleteProduct(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
-	p.l.Println("[DEBUG] delete record", id)
+	p.l.Info("[DEBUG] delete record", "id", id)
 
 	err := data.DeleteProduct(id)
 
