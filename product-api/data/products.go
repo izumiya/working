@@ -1,10 +1,12 @@
 package data
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
 	"time"
+
+	"github.com/hashicorp/go-hclog"
+	protos "github.com/izumiya/working/currency/protos/currency"
 )
 
 // Product defines the structure for an API product
@@ -17,7 +19,7 @@ type Product struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name" validate:"required"`
 	Description string  `json:"description"`
-	Price       float32 `json:"price" validate:"gt=0"`
+	Price       float64 `json:"price" validate:"gt=0"`
 	SKU         string  `json:"sku" validate:"required,sku"`
 	CreatedOn   string  `json:"-"`
 	UpdatedOn   string  `json:"-"`
@@ -27,44 +29,73 @@ type Product struct {
 // Products is a collection of Product
 type Products []*Product
 
-// ToJSON serializes the contens of the collection to JSON
-// NewEncoder provides better performance than json.Unmarshal as it does not
-// have to buffer the output into an in memory slice of bytes
-// this reduces allocations and the overheads of the service
-//
-// http://golang.org/pkg/encoding/json/#NewEncoder
-func (p *Products) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(p)
+type ProductsDB struct {
+	currency protos.CurrencyClient
+	log      hclog.Logger
+}
+
+func NewProductsDB(c protos.CurrencyClient, l hclog.Logger) *ProductsDB {
+	return &ProductsDB{c, l}
 }
 
 // GetProducts returns a list of products
-func GetProducts() Products {
-	return productList
-}
+func (p *ProductsDB) GetProducts(currency string) (Products, error) {
+	if currency == "" {
+		return productList, nil
+	}
 
-func GetProductByID(id int) (*Product, error) {
-	prod, _, err := findProduct(id)
+	rate, err := p.getRate(currency)
 	if err != nil {
+		p.log.Error("unable to get rate", "currency", currency, "error", err)
 		return nil, err
 	}
-	return prod, nil
+
+	pr := Products{}
+	for _, p := range productList {
+		np := *p
+		np.Price = np.Price * rate
+		pr = append(pr, &np)
+	}
+
+	return pr, nil
+}
+
+func (p *ProductsDB) GetProductByID(id int, currency string) (*Product, error) {
+	i := findIndexByProductID(id)
+	if i == -1 {
+		return nil, ErrProductNotFound
+	}
+
+	if currency == "" {
+		return productList[i], nil
+	}
+
+	rate, err := p.getRate(currency)
+	if err != nil {
+		p.log.Error("unable to get rate", "currency", currency, "error", err)
+		return nil, err
+	}
+
+	np := *productList[i]
+	np.Price = np.Price * rate
+
+	return &np, nil
+}
+
+func (p *ProductsDB) UpdateProduct(id int, prod *Product) error {
+	i := findIndexByProductID(id)
+	if i == -1 {
+		return ErrProductNotFound
+	}
+
+	prod.ID = id
+	productList[i] = prod
+	return nil
 }
 
 func AddProduct(p *Product) {
 	p.ID = getNextID()
 	productList = append(productList, p)
-}
-
-func UpdateProduct(id int, p *Product) error {
-	_, pos, err := findProduct(id)
-	if err != nil {
-		return err
-	}
-
-	p.ID = id
-	productList[pos] = p
-	return nil
 }
 
 func DeleteProduct(id int) error {
@@ -89,9 +120,31 @@ func findProduct(id int) (*Product, int, error) {
 	return nil, 0, ErrProductNotFound
 }
 
+// findIndex finds the index of a product in the database
+// returns -1 when no product can be found
+func findIndexByProductID(id int) int {
+	for i, p := range productList {
+		if p.ID == id {
+			return i
+		}
+	}
+
+	return -1
+}
+
 func getNextID() int {
 	lp := productList[len(productList)-1]
 	return lp.ID + 1
+}
+
+func (p *ProductsDB) getRate(destination string) (float64, error) {
+	// get exchange rate
+	rr := &protos.RateRequest{
+		Base:        protos.Currencies(protos.Currencies_value["EUR"]),
+		Destination: protos.Currencies(protos.Currencies_value[destination]),
+	}
+	resp, err := p.currency.GetRate(context.Background(), rr)
+	return resp.Rate, err
 }
 
 // productList is a hard coded list of products for this

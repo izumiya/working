@@ -1,17 +1,3 @@
-// Package classfication Product API
-//
-// Documentaion for Product API
-//
-// Schemes: http
-// BasePath: /
-// Version: 1.0.0
-//
-// Consume:
-// - application/json
-//
-// Produces:
-// - application/json
-// swagger:meta
 package handlers
 
 import (
@@ -21,8 +7,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
-	protos "github.com/izumiya/working/currency/protos/currency"
-
 	"github.com/izumiya/working/product-api/data"
 )
 
@@ -31,14 +15,14 @@ type KeyProduct struct{}
 
 // Products handler for getting and updating products
 type Products struct {
-	l hclog.Logger
-	v *data.Validation
-	cc protos.CurrencyClient
+	l          hclog.Logger
+	v          *data.Validation
+	productsDB *data.ProductsDB
 }
 
 // NewProducts creates a products handler with the given logger
-func NewProducts(l hclog.Logger, v *data.Validation, cc protos.CurrencyClient) *Products {
-	return &Products{l, v, cc}
+func NewProducts(l hclog.Logger, v *data.Validation, pdb *data.ProductsDB) *Products {
+	return &Products{l, v, pdb}
 }
 
 // ErrInvalidProductPath is an error message when the product path is not valid

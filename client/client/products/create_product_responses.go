@@ -53,7 +53,7 @@ func NewCreateProductOK() *CreateProductOK {
 
 /* CreateProductOK describes a response with status code 200, with default header values.
 
-CreateProductOK create product o k
+Data structure representing a single product
 */
 type CreateProductOK struct {
 	Payload *models.Product
@@ -85,16 +85,27 @@ func NewCreateProductUnprocessableEntity() *CreateProductUnprocessableEntity {
 
 /* CreateProductUnprocessableEntity describes a response with status code 422, with default header values.
 
-CreateProductUnprocessableEntity create product unprocessable entity
+Validation errors defined as an array of strings
 */
 type CreateProductUnprocessableEntity struct {
+	Payload *models.ValidationError
 }
 
 func (o *CreateProductUnprocessableEntity) Error() string {
-	return fmt.Sprintf("[POST /products][%d] createProductUnprocessableEntity ", 422)
+	return fmt.Sprintf("[POST /products][%d] createProductUnprocessableEntity  %+v", 422, o.Payload)
+}
+func (o *CreateProductUnprocessableEntity) GetPayload() *models.ValidationError {
+	return o.Payload
 }
 
 func (o *CreateProductUnprocessableEntity) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.ValidationError)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }
@@ -106,16 +117,27 @@ func NewCreateProductNotImplemented() *CreateProductNotImplemented {
 
 /* CreateProductNotImplemented describes a response with status code 501, with default header values.
 
-CreateProductNotImplemented create product not implemented
+Generic error message returned as a string
 */
 type CreateProductNotImplemented struct {
+	Payload *models.GenericError
 }
 
 func (o *CreateProductNotImplemented) Error() string {
-	return fmt.Sprintf("[POST /products][%d] createProductNotImplemented ", 501)
+	return fmt.Sprintf("[POST /products][%d] createProductNotImplemented  %+v", 501, o.Payload)
+}
+func (o *CreateProductNotImplemented) GetPayload() *models.GenericError {
+	return o.Payload
 }
 
 func (o *CreateProductNotImplemented) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.GenericError)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

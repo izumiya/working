@@ -17,19 +17,23 @@ import (
 func (p *Products) Update(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
-	p.l.Info("update record", "id", id)
+	p.l.Debug("update record", "id", id)
 
 	prod := r.Context().Value(KeyProduct{}).(*data.Product)
 
-	err := data.UpdateProduct(id, prod)
+	err := p.productsDB.UpdateProduct(id, prod)
 
 	if err == data.ErrProductNotFound {
-		http.Error(rw, "product not found", http.StatusNotFound)
+		p.l.Error("unable to update product id not exists", "id", id, "error", err)
+		rw.WriteHeader(http.StatusNotFound)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 
 	if err != nil {
-		http.Error(rw, "unable to update product", http.StatusInternalServerError)
+		p.l.Error("unable to update product", "error", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 }

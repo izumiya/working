@@ -41,7 +41,7 @@ func NewListProductsOK() *ListProductsOK {
 
 /* ListProductsOK describes a response with status code 200, with default header values.
 
-A list of products returns in the response
+A list of products
 */
 type ListProductsOK struct {
 	Payload []*models.Product

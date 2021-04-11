@@ -47,7 +47,7 @@ func NewListSingleProductOK() *ListSingleProductOK {
 
 /* ListSingleProductOK describes a response with status code 200, with default header values.
 
-ListSingleProductOK list single product o k
+Data structure representing a single product
 */
 type ListSingleProductOK struct {
 	Payload *models.Product
@@ -79,16 +79,27 @@ func NewListSingleProductNotFound() *ListSingleProductNotFound {
 
 /* ListSingleProductNotFound describes a response with status code 404, with default header values.
 
-ListSingleProductNotFound list single product not found
+Generic error message returned as a string
 */
 type ListSingleProductNotFound struct {
+	Payload *models.GenericError
 }
 
 func (o *ListSingleProductNotFound) Error() string {
-	return fmt.Sprintf("[GET /products/{id}][%d] listSingleProductNotFound ", 404)
+	return fmt.Sprintf("[GET /products/{id}][%d] listSingleProductNotFound  %+v", 404, o.Payload)
+}
+func (o *ListSingleProductNotFound) GetPayload() *models.GenericError {
+	return o.Payload
 }
 
 func (o *ListSingleProductNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.GenericError)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
 
 	return nil
 }

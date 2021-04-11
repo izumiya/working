@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+
+	"github.com/izumiya/working/client/models"
 )
 
 // NewCreateProductParams creates a new CreateProductParams object,
@@ -58,6 +60,14 @@ func NewCreateProductParamsWithHTTPClient(client *http.Client) *CreateProductPar
    Typically these are written to a http.Request.
 */
 type CreateProductParams struct {
+
+	/* Body.
+
+	     Product data structure to Update or Create.
+	Note: the id field is ignored by update and create operations
+	*/
+	Body *models.Product
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -111,6 +121,17 @@ func (o *CreateProductParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithBody adds the body to the create product params
+func (o *CreateProductParams) WithBody(body *models.Product) *CreateProductParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the create product params
+func (o *CreateProductParams) SetBody(body *models.Product) {
+	o.Body = body
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *CreateProductParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -118,6 +139,11 @@ func (o *CreateProductParams) WriteToRequest(r runtime.ClientRequest, reg strfmt
 		return err
 	}
 	var res []error
+	if o.Body != nil {
+		if err := r.SetBodyParam(o.Body); err != nil {
+			return err
+		}
+	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)

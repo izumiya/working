@@ -31,7 +31,7 @@ type Product struct {
 	Name string `json:"name,omitempty"`
 
 	// price
-	Price float32 `json:"price,omitempty"`
+	Price float64 `json:"price,omitempty"`
 
 	// s k u
 	SKU string `json:"sku,omitempty"`

@@ -38,31 +38,36 @@ func main() {
 	// create client
 	cc := protos.NewCurrencyClient(conn)
 
+	// create database instance
+	db := data.NewProductsDB(cc, l)
+
 	// create the handlers
-	ph := handlers.NewProducts(l, v, cc)
+	ph := handlers.NewProducts(l, v, db)
 
 	// create a new serve mux and register the handlers
 	sm := mux.NewRouter()
 
-	getRouter := sm.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/products", ph.ListAll)
-	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.ListSingleProduct)
+	getR := sm.Methods(http.MethodGet).Subrouter()
+	getR.HandleFunc("/products", ph.ListAll).Queries("currency", "{[A-Z]{3}}")
+	getR.HandleFunc("/products", ph.ListAll)
+	getR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle).Queries("currency", "{[A-Z]{3}}")
+	getR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
 
-	putRoter := sm.Methods(http.MethodPut).Subrouter()
-	putRoter.HandleFunc("/products/{id:[0-9]+}", ph.Update)
-	putRoter.Use(ph.MiddlewareValidateProduct)
+	putR := sm.Methods(http.MethodPut).Subrouter()
+	putR.HandleFunc("/products/{id:[0-9]+}", ph.Update)
+	putR.Use(ph.MiddlewareValidateProduct)
 
-	postRouter := sm.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/products", ph.Create)
-	postRouter.Use(ph.MiddlewareValidateProduct)
+	postR := sm.Methods(http.MethodPost).Subrouter()
+	postR.HandleFunc("/products", ph.Create)
+	postR.Use(ph.MiddlewareValidateProduct)
 
-	deleteRoter := sm.Methods(http.MethodDelete).Subrouter()
-	deleteRoter.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+	deleteR := sm.Methods(http.MethodDelete).Subrouter()
+	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
 
 	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
 	sh := middleware.Redoc(opts, nil)
-	getRouter.Handle("/docs", sh)
-	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
+	getR.Handle("/docs", sh)
+	getR.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"http://localhost:3000"}))
 

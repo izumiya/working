@@ -17,17 +17,21 @@ import (
 func (p *Products) DeleteProduct(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
-	p.l.Info("[DEBUG] delete record", "id", id)
+	p.l.Debug("delete record", "id", id)
 
 	err := data.DeleteProduct(id)
 
 	if err == data.ErrProductNotFound {
-		http.Error(rw, "product not found", http.StatusNotFound)
+		p.l.Error("unable to delete record id does not exist", "id", id, "error", err)
+		rw.WriteHeader(http.StatusNotFound)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 
 	if err != nil {
-		http.Error(rw, "unable to delete product", http.StatusInternalServerError)
+		p.l.Error("unable to delete product", "error", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 }
