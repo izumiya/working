@@ -57,14 +57,23 @@ func (p *ProductsDB) handleUpdates() {
 
 	for {
 		rr, err := sub.Recv()
-		p.log.Info("received updated rate from server", "dest", rr.GetDestination().String())
 
 		if err != nil {
-			p.log.Error("erreor receiving message", "error", err)
+			p.log.Error("error receiving message", "error", err)
 			return
 		}
 
-		p.rates[rr.Destination.String()] = rr.Rate
+		if grpcError := rr.GetError(); grpcError != nil {
+			p.log.Error("error subscribing for rate", "error", grpcError)
+			continue
+		}
+
+		if resp := rr.GetRateResponse(); resp != nil {
+			p.log.Info("received updated rate from server", "dest", resp.GetDestination().String())
+
+			p.rates[resp.Destination.String()] = resp.Rate
+		}
+
 	}
 }
 
@@ -168,9 +177,9 @@ func getNextID() int {
 }
 
 func (p *ProductsDB) getRate(destination string) (float64, error) {
-	if r, ok := p.rates[destination]; ok {
-		return r, nil
-	}
+	//if r, ok := p.rates[destination]; ok {
+	//	return r, nil
+	//}
 
 	// get exchange rate
 	rr := &protos.RateRequest{
