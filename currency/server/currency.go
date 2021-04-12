@@ -71,7 +71,7 @@ func (c *Currency) SubscribeRates(src protos.Currency_SubscribeRatesServer) erro
 			return err
 		}
 
-		c.log.Info("handle cliunet request", "request", rr)
+		c.log.Info("handle client request", "request", rr)
 
 		rrs, ok := c.subscriptions[src]
 		if !ok {
